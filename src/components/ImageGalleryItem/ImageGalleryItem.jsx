@@ -1,48 +1,42 @@
 import React from "react";
-import { Component } from "react";
+import { useState, useEffect } from "react";
 import PropTypes from 'prop-types';
 import css from "components/ImageGalleryItem/ImageGalleryItem.module.css"
 import { API } from "components/API/API";
 import { toast } from 'react-toastify';
 
 
+export const ImageGalleryItem = ({request, page, perPage, fetchOnSubmit, onClick, onLoading}) => {
+  const [images, setImages] = useState([]);
 
-export class ImageGalleryItem extends Component {
-    state = {
-        images: [],
-        error: "",
-
-    }
-
-    async componentDidUpdate(pP) {
-        if (pP.request !== this.props.request || pP.page !== this.props.page) {
-        this.props.onLoading(true);
-          await API(this.props.request, this.props.page, this.props.perPage)
+  useEffect(() => {
+      
+    if (request.length > 0) {
+      onLoading(true);
+    API(request, page, perPage)
     .then((pics) => {
-          this.setState({ images: pics.hits, totalHits: pics.totalHits });
-          this.props.fetchOnSubmit(pics.hits, pics.totalHits)
+          setImages(pics.hits)
+          fetchOnSubmit(pics.hits, pics.totalHits)
     })
     .catch((error) => {
-      this.setState({error});
-      toast.error("Something's wrong :( Try to reload the page!")
+      toast.error(`Something's wrong :( Try to reload the page! Error: ${error}`)
     })
     .finally(() => {
-        this.props.onLoading(false);
+        onLoading(false);
         
-    })    
-    }    
+    }) 
     }
+  }, [request, page, perPage])
 
-    render() {
-      return (<>
+
+  return (<>
             
-            {this.state.images.map((image) =>
+            {images.map((image) =>
           <li className={css.ImageGalleryItem} key={image.id} >
-          <img className={css.ImageGalleryItemImage} src={image.webformatURL} alt="" onClick={this.props.onClick} />
+          <img className={css.ImageGalleryItemImage} src={image.webformatURL} alt="" onClick={onClick} />
             </li>)}
             
             </>)
-    }
 }
 
 ImageGalleryItem.propTypes = {

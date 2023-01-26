@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Component } from "react";
+import { useState} from "react";
 import { Searchbar } from "./Searchbar/Searchbar";
 import { ImageGallery } from "./ImageGallery/ImageGallery.jsx";
 import { ImageGalleryItem } from "./ImageGalleryItem/ImageGalleryItem.jsx";
@@ -14,78 +14,72 @@ import 'react-toastify/dist/ReactToastify.css';
 import css from "./App.module.css"
 
 
+export const App = () => {
+  const [request, setRequest] = useState("");
+  const [page, setPage] = useState(1);
+  const [images, setImages] = useState([]);
+  const [totalHits, setTotalHits] = useState(null);
+  const [largeImage, setLargeImage] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
+  const perPage = 12;
 
-export class App extends Component {
-
-  state = {
-    request: '',
-    page: 1,
-    perPage: 12,
-    images: [],
-    totalHits: null,
-    largeImage: null,
-    isLoading: false,
-
-  }
-
-  onSearchSubmit = request => {
+  const onSearchSubmit = request => {
     if (request.trim() === "") {
       toast.info("What exactly do we search?")
       return;
     }
-    this.setState(({ request, page: 1 }))
-    
+    setRequest(request);
+    setPage(1)
   }
 
-  fetchOnSubmit = async (images, totalHits ) => {
-    this.setState({ images, totalHits })
+  const fetchOnSubmit = async (images, totalHits) => {
+    setImages(images)
+    setTotalHits(totalHits)
     if (totalHits === 0) {
       toast.info("No pics with this name!")
     }
   }
 
-  fetchOnLoadMore =  () => {
-    this.setState({page: this.state.page +1})
+  const fetchOnLoadMore = () => {
+    setPage(page => page + 1);
   }
 
-  loadingHandler = (isLoading) => {
-    this.setState({ isLoading })
+  const loadingHandler = (loadingState) => {
+    setIsLoading(loadingState);
   }
 
-  getModalImage = (event) => {
-    
-     this.state.images.map(image => {
+  const getModalImage = (event) => {
+      images.map(image => {
       image.webformatURL === event.target.src &&
-      this.setState({largeImage: image.largeImageURL})
+      setLargeImage(image.largeImageURL)
       }
     )
   }
 
-  closeModal = () => {
-    this.setState({largeImage: null})
+  const closeModal = () => {
+    setLargeImage(null);
   }
 
-  render() {
-    return (
+  return (
       <div className={css.App}>
 
-        <Searchbar onSubmit={this.onSearchSubmit} />
+        <Searchbar onSubmit={onSearchSubmit} />
 
         <ImageGallery> 
           <ImageGalleryItem
-            request={this.state.request}
-            page={this.state.page}
-            perPage={this.state.perPage}
-            fetchOnSubmit={this.fetchOnSubmit}
-            onClick={this.getModalImage}
-            onLoading={this.loadingHandler} />
+            request={request}
+            page={page}
+            perPage={perPage}
+            fetchOnSubmit={fetchOnSubmit}
+            onClick={getModalImage}
+            onLoading={loadingHandler} />
         </ImageGallery>
 
-        {this.state.largeImage &&
-          <Modal closeModal={this.closeModal} largeImage={this.state.largeImage} />}
+        {largeImage &&
+          <Modal closeModal={closeModal} largeImage={largeImage} />}
          
-        {this.state.isLoading && <ProgressBar
+        {isLoading && <ProgressBar
           height="80"
           width="80"
           ariaLabel="progress-bar-loading"
@@ -95,7 +89,7 @@ export class App extends Component {
           barColor = '#3f51b5'
         />}
         
-        {!this.state.isLoading && this.state.page * this.state.perPage < this.state.totalHits && <Button onClick={this.fetchOnLoadMore}/> }
+        {!isLoading && page * perPage < totalHits && <Button onClick={fetchOnLoadMore}/> }
         
         <ToastContainer
           position="top-right"
@@ -109,12 +103,8 @@ export class App extends Component {
           pauseOnHover
           theme="colored"
         />
-      
       </div>
-      
     );
-  }
-
 }
 
 
